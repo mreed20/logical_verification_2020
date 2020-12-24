@@ -21,8 +21,9 @@ be negative are represented by 0. For example:
     `sub 7 2 = 5`
     `sub 2 7 = 0` -/
 
-def sub : ℕ → ℕ → ℕ :=
-sorry
+def sub : ℕ → ℕ → ℕ
+| (nat.succ x) (nat.succ y) := sub x y
+| x            _            := x
 
 /- 1.2. Check that your function works as expected. -/
 
@@ -67,7 +68,7 @@ def some_env : string → ℤ
 | _   := 201
 
 #eval eval some_env (aexp.var "x")   -- expected: 3
--- invoke `#eval` here
+#eval eval some_env (aexp.add (aexp.var "x") (aexp.var "y"))
 
 /- 2.2. The following function simplifies arithmetic expressions involving
 addition. It simplifies `0 + e` and `e + 0` to `e`. Complete the definition so
@@ -77,7 +78,10 @@ operators. -/
 def simplify : aexp → aexp
 | (aexp.add (aexp.num 0) e₂) := simplify e₂
 | (aexp.add e₁ (aexp.num 0)) := simplify e₁
--- insert the missing cases here
+| (aexp.sub e₁ (aexp.num 0)) := simplify e₁
+| (aexp.mul e₁ (aexp.num 1)) := simplify e₁
+| (aexp.mul (aexp.num 1) e₂) := simplify e₂ 
+| (aexp.div e₁ (aexp.num 1)) := simplify e₁
 -- catch-all cases below
 | (aexp.num i)               := aexp.num i
 | (aexp.var x)               := aexp.var x
@@ -91,7 +95,7 @@ that the simplified expression should have the same semantics, with respect to
 `eval`, as the original expression. -/
 
 lemma simplify_correct (env : string → ℤ) (e : aexp) :
-  true :=   -- replace `true` by your lemma statement
+  eval env e = eval env (simplify e) :=
 sorry
 
 
@@ -112,23 +116,27 @@ def K : α → β → α :=
 λa b, a
 
 def C : (α → β → γ) → β → α → γ :=
-sorry
+λf a b, f b a
 
 def proj_1st : α → α → α :=
-sorry
+λa b, a
 
 /- Please give a different answer than for `proj_1st`. -/
 
 def proj_2nd : α → α → α :=
-sorry
+λa b, b
 
 def some_nonsense : (α → β → γ) → α → (α → γ) → β → γ :=
-sorry
+λf x g y, g x
+
+-- alternate definition
+def some_nonsense' : (α → β → γ) → α → (α → γ) → β → γ :=
+λf x g y, f x y
 
 /- 3.2. Show the typing derivation for your definition of `C` above, on paper
 or using ASCII or Unicode art. You might find the characters `–` (to draw
-horizontal bars) and `⊢` useful. -/
+horizontal bars) and `⊢` useful.
 
--- write your solution in a comment here or on paper
+-/
 
 end LoVe
