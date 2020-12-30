@@ -198,7 +198,7 @@ begin
     intro ha,
     apply false.elim,
     apply hna,
-    assumption }
+    apply ha }
 end
 
 /- 3.2 (**optional**). Prove the following implication using tactics. -/

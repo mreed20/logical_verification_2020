@@ -6,6 +6,8 @@ import .love02_backward_proofs_demo
 
 set_option pp.beta true
 set_option pp.generalized_field_notation false
+set_option trace.simplify.rewrite true
+
 
 namespace LoVe
 
@@ -21,35 +23,71 @@ Section 2.3 in the Hitchhiker's Guide. -/
 
 lemma I (a : Prop) :
   a → a :=
-sorry
+begin
+  -- ha := "hypothesis a"
+  intro ha,
+  exact ha,
+  -- alternatively: assumption
+end
 
 lemma K (a b : Prop) :
   a → b → b :=
-sorry
+begin
+  intros ha hb,
+  exact hb
+  -- alternatively: apply I,
+end
 
 lemma C (a b c : Prop) :
   (a → b → c) → b → a → c :=
-sorry
+begin
+  intros habc hb ha,
+  apply habc,
+  { exact ha },
+  { exact hb },
+end
 
 lemma proj_1st (a : Prop) :
   a → a → a :=
-sorry
+begin
+  intros ha ha',
+  exact ha,
+end
 
 /- Please give a different answer than for `proj_1st`: -/
 
 lemma proj_2nd (a : Prop) :
   a → a → a :=
-sorry
+begin
+  intros ha ha',
+  exact ha',
+end
 
 lemma some_nonsense (a b c : Prop) :
   (a → b → c) → a → (a → c) → b → c :=
-sorry
+begin
+  intros _ ha hac _,
+  apply hac,
+  apply ha,
+end
 
 /- 1.2. Prove the contraposition rule using basic tactics. -/
 
 lemma contrapositive (a b : Prop) :
   (a → b) → ¬ b → ¬ a :=
-sorry
+begin
+  intros hab,
+  -- Note: Rewriting using `rw not_def` makes it much easier
+  -- to see which of the negated hypotheses (¬ b, ¬ a) can apply
+  -- at each step in the proof.
+  rw not_def,
+  intro hnb,
+  rw not_def,
+  intro ha,
+  apply hnb,
+  apply hab,
+  exact ha,
+end
 
 /- 1.3. Prove the distributivity of `∀` over `∧` using basic tactics.
 
@@ -59,7 +97,37 @@ necessary. -/
 
 lemma forall_and {α : Type} (p q : α → Prop) :
   (∀x, p x ∧ q x) ↔ (∀x, p x) ∧ (∀x, q x) :=
-sorry
+begin
+  -- introduce the ↔ so that I can use `intro`
+  apply iff.intro,
+  { -- prove the implication from left to right
+    intro hleft,
+    apply and.intro,
+    {
+      intro hx,
+      -- since we're going in reverse, elim will *introduce* a conjunction into our goal
+      apply and.elim_left,
+      -- `exact` will not work here, since hleft cannot be immediately
+      -- matched with the goal (hleft is universally quantified, while the goal is not)
+      apply hleft
+    },
+    {
+      intro hx,
+      apply and.elim_right,
+      apply hleft,
+    },
+  },
+  { -- prove the implication from right to left
+    intro hpx,
+    intro hx,
+    apply and.intro,
+    -- Apply and-elimination to the left side of the conjunction in the
+    -- hypothesis, the result of which can be matched with the goal (p hx).
+    -- This is a forward step in an otherwise backward proof.
+    { apply (and.elim_left hpx) },
+    { apply (and.elim_right hpx) }
+  },
+end
 
 
 /- ## Question 2: Natural Numbers
@@ -71,22 +139,53 @@ sorry
 
 lemma mul_zero (n : ℕ) :
   mul 0 n = 0 :=
-sorry
+begin
+  -- not really sure of the difference between induction' and induction
+  induction' n,
+  { refl },
+  -- Using the definition of `mul` and `add`, simp can transform the goal to
+  -- `add 0 (mul 0 n) = 0`. To complete the proof, we also need the inductive
+  -- hypothesis of `mul 0 n = 0`, which will allow simp to further transform
+  -- the goal to `add 0 0 = 0` and then `0 = 0`.
+  { simp [mul, add, ih] }
+end
 
 lemma mul_succ (m n : ℕ) :
   mul (nat.succ m) n = add (mul m n) n :=
-sorry
+begin
+  induction' n,
+  { refl },
+  { simp [mul, ih, add, add_succ, add_assoc] }
+end
 
 /- 2.2. Prove commutativity and associativity of multiplication using the
 `induction'` tactic. Choose the induction variable carefully. -/
 
 lemma mul_comm (m n : ℕ) :
   mul m n = mul n m :=
-sorry
+begin
+  induction' n,
+  { simp [mul, mul_zero] },
+  { simp [mul, mul_succ, add_comm, ih], }
+end
 
 lemma mul_assoc (l m n : ℕ) :
   mul (mul l m) n = mul l (mul m n) :=
-sorry
+begin
+  -- Do induction on n since mul's base case is defined as `mul _ 0 = 0`.
+  induction' n,
+  -- This could be just `refl`, but `simp` makes it clear that only the
+  -- definition of `mul` is required for simplification.
+  { simp [mul] },
+  -- I initially had trouble with this because I was using mul_comm in the
+  -- simp set, which it turns out transforms the goal to somethiing that
+  -- simp cannot make progress on. The key insight here is that we can
+  -- apply the inductive hypothesis `ih` to treat multiplication as
+  -- associative, which helps complete the proof (and avoids the need to
+  -- transform all `mul`s to `add`s, which I'm not sure is possible, so
+  -- we can use the lemma `add_assoc`).
+  { simp [mul, mul_add, ih], }
+end
 
 /- 2.3. Prove the symmetric variant of `mul_add` using `rw`. To apply
 commutativity at a specific position, instantiate the rule by passing some
@@ -94,7 +193,10 @@ arguments (e.g., `mul_comm _ l`). -/
 
 lemma add_mul (l m n : ℕ) :
   mul (add l m) n = add (mul n l) (mul n m) :=
-sorry
+begin
+  rw mul_comm,
+  rw mul_add,
+end
 
 
 /- ## Question 3 (**optional**): Intuitionistic Logic
@@ -124,7 +226,26 @@ and similarly for `peirce`. -/
 
 lemma peirce_of_em :
   excluded_middle → peirce :=
-sorry
+begin
+  rw excluded_middle,
+  rw peirce,
+  intros him ha hb haba,
+  -- apply haba,
+  apply (or.elim (him ha) _ _),
+  {
+    intro ha,
+    exact ha,
+  },
+  {
+    intro haf,
+    apply haba,
+    intro ha,
+    -- im pretty sure this is basically a proof by contradiction, right?
+    apply false.elim,
+    apply haf,
+    apply ha,
+  },
+end
 
 /- 3.2 (**optional**). Prove the following implication using tactics. -/
 

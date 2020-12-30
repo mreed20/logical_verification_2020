@@ -110,7 +110,7 @@ def S : (α → β → γ) → (α → β) → α → γ :=
 λf g x, f x (g x)
 
 def more_nonsense : (γ → (α → β) → α) → γ → β → α :=
-λf, λc, λb, f c (λ_, b)
+λf, λc, λb, f c (λa, b)
 
 def even_more_nonsense : (α → α → β) → (β → γ) → α → β → γ :=
 λf, λg, λa, λb, g b
@@ -123,7 +123,7 @@ follow the procedure described in the Hitchhiker's Guide.
 Note: Peirce is pronounced like the English word "purse". -/
 
 def weak_peirce : ((((α → β) → α) → α) → β) → β :=
-λf, f (λg, g (λa, f (λ_, a)))
+λf, f (λg, g (λa, f (const a)))
 
 /- 3.3 (2 points). Show the typing derivation for your definition of `S` above,
 using ASCII or Unicode art. You might find the characters `–` (to draw

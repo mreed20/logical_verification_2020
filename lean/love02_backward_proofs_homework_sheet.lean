@@ -24,15 +24,32 @@ Section 2.3 in the Hitchhiker's Guide. -/
 
 lemma B (a b c : Prop) :
   (a → b) → (c → a) → c → b :=
-sorry
+begin
+  intros hab hca hc,
+  apply hab,
+  apply hca,
+  exact hc
+end
 
 lemma S (a b c : Prop) :
   (a → b → c) → (a → b) → a → c :=
-sorry
+begin
+  intros habc hab ha,
+  apply habc,
+  { exact ha },
+  { apply hab,
+    exact ha }
+end
 
 lemma more_nonsense (a b c : Prop) :
   (c → (a → b) → a) → c → b → a :=
-sorry
+begin
+  intros hcaba,
+  intros hc hb,
+  apply hcaba,
+  { exact hc },
+  { cc }
+end
 
 lemma even_more_nonsense (a b c : Prop) :
   (a → a → b) → (b → c) → a → b → c :=

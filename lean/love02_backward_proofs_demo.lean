@@ -174,8 +174,12 @@ lemma and_swap₂ :
 begin
   intros a b hab,
   apply and.intro,
-  { exact and.elim_right hab },
-  { exact and.elim_left hab }
+  { exact (and.elim_right hab) },
+  -- adding parens here makes it clearer that `and.elim_left hab` takes hab (a proof for
+  -- a and b) as argument and emits just a proof for b (it elminiates the conjunction
+  -- and takes just the right hand side). This proof for b is then matched against the
+  -- current goal, closing it.
+  { exact (and.elim_left hab) }
 end
 
 /- Notice above how we pass the hypothesis `hab` directly to the lemmas
