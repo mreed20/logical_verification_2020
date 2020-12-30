@@ -48,18 +48,33 @@ begin
   intros hc hb,
   apply hcaba,
   { exact hc },
-  { cc }
+  { intro,
+    exact hb }
 end
 
 lemma even_more_nonsense (a b c : Prop) :
   (a → a → b) → (b → c) → a → b → c :=
-sorry
+begin
+  intros haab hbc ha hb,
+  apply hbc,
+  exact hb
+end
 
 /- 1.2 (1 point). Prove the following lemma using basic tactics. -/
 
 lemma weak_peirce (a b : Prop) :
   ((((a → b) → a) → a) → b) → b :=
-sorry
+begin
+  -- λf, f (λg, g (λa, f (λ_, a)))
+  intro hf,
+  apply hf,
+  intro hg,
+  apply hg,
+  intro hh,
+  apply hf,
+  intro,
+  exact hh,
+end
 
 
 /- ## Question 2 (5 points): Logical Connectives
@@ -77,7 +92,17 @@ Hints:
 
 lemma about_implication (a b : Prop) :
   ¬ a ∨ b → a → b :=
-sorry
+begin
+  intros hanb,
+  intro ha,
+  apply or.elim hanb,
+  { intro hna,
+    apply false.elim,
+    apply hna,
+    apply ha },
+  { intro,
+    assumption }
+end
 
 /- 2.2 (2 points). Prove the missing link in our chain of classical axiom
 implications.
@@ -96,7 +121,28 @@ Hints:
 
 lemma em_of_dn :
   double_negation → excluded_middle :=
-sorry
+begin
+  rw double_negation,
+  rw excluded_middle,
+  intros hdouble ha,
+  apply hdouble,
+  -- thanks for the tip:
+  -- https://github.com/dotlambda/logical_verification_2020/blob/1b01d5385313b42b7a4d015a4ac216fda8b9ceb8/lean/love02_backward_proofs_homework_sheet.lean
+  apply contrapositive,
+  { intro hnaa,
+    apply hdouble,
+    apply hdouble },
+  { intro hnf,
+    apply hdouble,
+    rw not_def,
+    rw not_def,
+    intro _,
+    apply hnf,
+    apply hdouble,
+    -- TODO: not sure how to proceed
+  }
+
+end
 
 /- 2.3 (2 points). We have proved three of the six possible implications
 between `excluded_middle`, `peirce`, and `double_negation`. State and prove the
