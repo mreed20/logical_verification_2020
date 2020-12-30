@@ -124,24 +124,26 @@ lemma em_of_dn :
 begin
   rw double_negation,
   rw excluded_middle,
-  intros hdouble ha,
-  apply hdouble,
-  -- thanks for the tip:
-  -- https://github.com/dotlambda/logical_verification_2020/blob/1b01d5385313b42b7a4d015a4ac216fda8b9ceb8/lean/love02_backward_proofs_homework_sheet.lean
-  apply contrapositive,
-  { intro hnaa,
-    apply hdouble,
-    apply hdouble },
-  { intro hnf,
-    apply hdouble,
+  intros dn ha,
+  apply dn,
+  rw not_def,
+  rw not_def,
+  -- OHHHHH, I can do an intro here. Thanks to:
+  -- https://github.com/dotlambda/logical_verification_2020/blob/6d5fbc038787f703aee161190cdb76ab78c3ac97/lean/love02_backward_proofs_homework_sheet.lean
+  intro hnana,
+  apply not.elim,
+  {
     rw not_def,
+    intro hna,
+    apply hnana,
+    apply or.intro_right,
+    exact hna },
+  {
     rw not_def,
-    intro _,
-    apply hnf,
-    apply hdouble,
-    -- TODO: not sure how to proceed
-  }
-
+    intro ha,
+    apply hnana,
+    apply or.intro_left,
+    exact ha }
 end
 
 /- 2.3 (2 points). We have proved three of the six possible implications
@@ -152,7 +154,32 @@ three missing implications, exploiting the three theorems we already have. -/
 #check dn_of_peirce
 #check em_of_dn
 
--- enter your solution here
+lemma dn_of_em :
+  excluded_middle → double_negation :=
+begin
+  intro em,
+  apply dn_of_peirce,
+  apply peirce_of_em,
+  exact em
+end
+
+lemma em_of_peirce :
+  peirce → excluded_middle :=
+begin
+  intro p,
+  apply em_of_dn,
+  apply dn_of_peirce,
+  exact p
+end
+
+lemma peirce_of_dn :
+  double_negation → excluded_middle :=
+begin
+  intro dn,
+  apply em_of_dn,
+  exact dn
+end
+
 
 end backward_proofs
 
